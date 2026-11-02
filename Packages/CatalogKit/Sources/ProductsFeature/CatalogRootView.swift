@@ -3,10 +3,12 @@ import CatalogCore
 import DesignSystem
 import SwiftUI
 
-/// Split view on iPad and large iPhones in landscape, a navigation stack everywhere else.
+/// Regular width (iPad, split screen): sidebar list and detail side by side.
+/// Compact width (iPhone, slide over): one navigation stack. The list model survives the switch.
 public struct CatalogRootView: View {
     @State private var listModel: ProductListModel
     @State private var selection: ProductSummary?
+    @Environment(\.horizontalSizeClass) private var horizontalSizeClass
     private let dependencies: CatalogDependencies
 
     public init(dependencies: CatalogDependencies) {
@@ -15,21 +17,49 @@ public struct CatalogRootView: View {
     }
 
     public var body: some View {
-        NavigationSplitView {
-            ProductListView(model: listModel, selection: $selection, currencyCode: dependencies.currencyCode)
-                .navigationSplitViewColumnWidth(min: Metrics.sidebarMinWidth, ideal: Metrics.sidebarIdealWidth)
-        } detail: {
-            if let selection {
-                ProductDetailView(summary: selection, service: dependencies.products, currencyCode: dependencies.currencyCode)
-                    .id(selection.id)
-            } else {
-                StateView(
-                    systemImage: "shippingbox",
-                    title: L10n.Detail.placeholderTitle,
-                    message: L10n.Detail.placeholderMessage
-                )
-                .accessibilityIdentifier(AccessibilityID.ProductDetail.placeholder)
+        if horizontalSizeClass == .compact {
+            NavigationStack {
+                list(highlightsSelection: false)
+                    .navigationDestination(item: $selection) { product in
+                        detail(for: product)
+                    }
+            }
+        } else {
+            NavigationSplitView {
+                list(highlightsSelection: true)
+                    .navigationSplitViewColumnWidth(min: Metrics.sidebarMinWidth, ideal: Metrics.sidebarIdealWidth)
+            } detail: {
+                NavigationStack {
+                    if let selection {
+                        detail(for: selection)
+                    } else {
+                        StateView(
+                            systemImage: "shippingbox",
+                            title: L10n.Detail.placeholderTitle,
+                            message: L10n.Detail.placeholderMessage
+                        )
+                        .frame(maxWidth: .infinity, maxHeight: .infinity)
+                        .background(Palette.screenBackground)
+                        .accessibilityElement(children: .contain)
+                        .accessibilityIdentifier(AccessibilityID.ProductDetail.placeholder)
+                    }
+                }
             }
         }
+    }
+
+    private func list(highlightsSelection: Bool) -> some View {
+        ProductListView(
+            model: listModel,
+            selection: $selection,
+            currencyCode: dependencies.currencyCode,
+            highlightsSelection: highlightsSelection
+        )
+    }
+
+    private func detail(for product: ProductSummary) -> some View {
+        ProductDetailView(summary: product, service: dependencies.products, currencyCode: dependencies.currencyCode)
+            .id(product.id)
+            .transition(.opacity)
     }
 }

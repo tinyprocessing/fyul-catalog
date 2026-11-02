@@ -16,19 +16,39 @@ struct PriceText: View {
 
     var body: some View {
         let format = Decimal.FormatStyle.Currency(code: currencyCode)
-        HStack(alignment: .firstTextBaseline, spacing: Spacing.s) {
-            Text(price, format: format).font(font)
-            if let discount = activeDiscount {
-                // The API price is already discounted; the original is derived for context.
-                Text(originalPrice(discount: discount), format: format)
-                    .font(Typography.caption)
-                    .strikethrough()
-                    .foregroundStyle(Palette.secondaryText)
-                Badge(Self.percent(discount, negative: true), style: .positive)
+        // Never truncate a price: when space runs out the old price and badge move to a second line.
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.s) {
+                current(format)
+                discount(format)
+            }
+            VStack(alignment: .leading, spacing: Spacing.xxs) {
+                current(format)
+                HStack(alignment: .firstTextBaseline, spacing: Spacing.s) { discount(format) }
             }
         }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityText(format: format))
+    }
+
+    private func current(_ format: Decimal.FormatStyle.Currency) -> some View {
+        Text(price, format: format)
+            .font(font)
+            .lineLimit(1)
+            .contentTransition(.numericText(value: NSDecimalNumber(decimal: price).doubleValue))
+    }
+
+    @ViewBuilder
+    private func discount(_ format: Decimal.FormatStyle.Currency) -> some View {
+        if let discount = activeDiscount {
+            // The API price is already discounted; the original is derived for context.
+            Text(originalPrice(discount: discount), format: format)
+                .font(Typography.caption)
+                .strikethrough()
+                .foregroundStyle(Palette.secondaryText)
+                .lineLimit(1)
+            Badge(Self.percent(discount, negative: true), style: .positive)
+        }
     }
 
     private func originalPrice(discount: Double) -> Decimal {
@@ -74,5 +94,35 @@ struct Rating: View {
         RatingView(value)
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(L10n.rating(value.formatted(.number.precision(.fractionLength(1)))))
+    }
+}
+
+/// Stock on the leading edge, rating on the trailing edge; stacked when large text needs the room.
+struct StockAndRating: View {
+    let level: StockLevel
+    let rating: Double?
+    var stockIdentifier = ""
+
+    var body: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: Spacing.s) {
+                badge
+                Spacer(minLength: Spacing.s)
+                ratingView
+            }
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                badge
+                ratingView
+            }
+        }
+    }
+
+    private var badge: some View {
+        StockBadge(level: level).accessibilityIdentifier(stockIdentifier)
+    }
+
+    @ViewBuilder
+    private var ratingView: some View {
+        if let rating { Rating(value: rating) }
     }
 }

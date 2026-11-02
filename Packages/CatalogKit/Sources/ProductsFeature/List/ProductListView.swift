@@ -7,6 +7,8 @@ struct ProductListView: View {
     @Bindable var model: ProductListModel
     @Binding var selection: ProductSummary?
     let currencyCode: String
+    /// The split view keeps the selected card highlighted; a stack pushes and forgets it.
+    let highlightsSelection: Bool
 
     @Environment(RemoteConfigStore.self) private var remoteConfig
 
@@ -14,6 +16,8 @@ struct ProductListView: View {
 
     var body: some View {
         content
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(Palette.screenBackground)
             .navigationTitle(L10n.List.title)
             .searchable(text: $model.searchText, prompt: L10n.List.searchPrompt)
             .toolbar {
@@ -22,9 +26,10 @@ struct ProductListView: View {
                     sortMenu
                 }
             }
-            .safeAreaInset(edge: .top, spacing: 0) { banners }
-            .animation(.default, value: model.isOffline)
-            .animation(.default, value: model.refreshError)
+            .animation(Motion.standard, value: model.phase)
+            .animation(Motion.standard, value: model.isOffline)
+            .animation(Motion.standard, value: model.refreshError)
+            .animation(Motion.standard, value: remoteConfig.flags)
             .task { await model.start() }
             .onChange(of: remoteConfig.flags, initial: true) { _, flags in
                 model.apply(flags)
@@ -35,9 +40,14 @@ struct ProductListView: View {
     private var content: some View {
         switch model.phase {
         case .loading:
-            ProgressView(L10n.List.loading)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .accessibilityIdentifier(ID.loading)
+            scrolling {
+                ForEach(0..<Metrics.skeletonRows, id: \.self) { _ in ProductCardSkeleton() }
+            }
+            .scrollDisabled(true)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(L10n.List.loading)
+            .accessibilityIdentifier(ID.loading)
+            .transition(.opacity)
         case .failed(let error):
             StateView(
                 systemImage: error == .offline ? "wifi.slash" : "exclamationmark.triangle",
@@ -47,59 +57,84 @@ struct ProductListView: View {
                 actionIdentifier: ID.retryButton,
                 action: model.retry
             )
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
             .accessibilityElement(children: .contain)
             .accessibilityIdentifier(ID.errorState)
+            .transition(.opacity)
         case .empty:
             emptyState
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 .accessibilityElement(children: .contain)
                 .accessibilityIdentifier(ID.emptyState)
+                .transition(.opacity)
         case .loaded:
-            list
+            productList
+                .transition(.opacity)
         }
     }
 
-    private var list: some View {
-        List(selection: $selection) {
+    private var productList: some View {
+        scrolling {
             ForEach(model.products) { product in
-                NavigationLink(value: product) {
-                    ProductRow(product: product, flags: remoteConfig.flags, currencyCode: currencyCode)
+                Button {
+                    selection = product
+                } label: {
+                    ProductCard(
+                        product: product,
+                        flags: remoteConfig.flags,
+                        currencyCode: currencyCode,
+                        isSelected: highlightsSelection && selection?.id == product.id
+                    )
                 }
+                .buttonStyle(PressableStyle())
                 .accessibilityIdentifier(ID.row(product.id))
                 .onAppear { model.loadMoreIfNeeded(after: product) }
             }
             pageFooter
         }
-        .listStyle(.plain)
         .refreshable { await model.refresh() }
         .accessibilityIdentifier(ID.list)
     }
 
+    /// Shared scroll container: cards on the grouped background, banners on top, no scroll bars.
+    private func scrolling(@ViewBuilder _ rows: () -> some View) -> some View {
+        ScrollView {
+            LazyVStack(spacing: Spacing.s) {
+                banners
+                rows()
+            }
+            .padding(.horizontal, Spacing.l)
+            .padding(.vertical, Spacing.s)
+        }
+        .scrollIndicators(.hidden)
+        .scrollDismissesKeyboard(.immediately)
+    }
+
     @ViewBuilder
     private var pageFooter: some View {
-        switch model.pageState {
-        case .loading:
-            ProgressView()
+        Group {
+            switch model.pageState {
+            case .loading:
+                ProductCardSkeleton()
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(L10n.List.pageLoading)
+                    .accessibilityIdentifier(ID.pageLoading)
+            case .failed:
+                VStack(spacing: Spacing.s) {
+                    Text(L10n.List.pageFailed)
+                        .font(Typography.rowMeta)
+                        .foregroundStyle(Palette.secondaryText)
+                    Button(L10n.Error.retry, action: model.retryNextPage)
+                        .buttonStyle(.bordered)
+                        .buttonBorderShape(.capsule)
+                        .accessibilityIdentifier(ID.pageRetryButton)
+                }
                 .frame(maxWidth: .infinity)
-                .accessibilityLabel(L10n.List.pageLoading)
-                .accessibilityIdentifier(ID.pageLoading)
-                .listRowSeparator(.hidden)
-        case .failed:
-            VStack(spacing: Spacing.s) {
-                Text(L10n.List.pageFailed)
-                    .font(Typography.rowMeta)
-                    .foregroundStyle(Palette.secondaryText)
-                Button(L10n.Error.retry, action: model.retryNextPage)
-                    .buttonStyle(.bordered)
-                    .accessibilityIdentifier(ID.pageRetryButton)
+                .padding(.vertical, Spacing.l)
+            case .idle, .exhausted:
+                EmptyView()
             }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, Spacing.m)
-            .listRowSeparator(.hidden)
-        case .idle, .exhausted:
-            EmptyView()
         }
+        .transition(.opacity)
+        .animation(Motion.standard, value: model.pageState)
     }
 
     @ViewBuilder
@@ -132,21 +167,20 @@ struct ProductListView: View {
 
     @ViewBuilder
     private var banners: some View {
-        VStack(spacing: Spacing.s) {
-            if let announcement = remoteConfig.flags.announcement {
-                Banner(systemImage: "megaphone", text: announcement, style: .neutral)
-                    .accessibilityIdentifier(ID.announcementBanner)
-            }
-            if model.isOffline, model.phase == .loaded {
-                Banner(systemImage: "wifi.slash", text: L10n.List.offlineBanner, style: .warning)
-                    .accessibilityIdentifier(ID.offlineBanner)
-            } else if model.refreshError != nil {
-                Banner(systemImage: "exclamationmark.arrow.circlepath", text: L10n.List.refreshFailedBanner, style: .warning)
-                    .accessibilityIdentifier(ID.refreshErrorBanner)
-            }
+        if let announcement = remoteConfig.flags.announcement {
+            Banner(systemImage: "megaphone", text: announcement, style: .neutral)
+                .accessibilityIdentifier(ID.announcementBanner)
+                .transition(.move(edge: .top).combined(with: .opacity))
         }
-        .padding(.horizontal, Spacing.l)
-        .padding(.bottom, Spacing.xs)
+        if model.isOffline, model.phase == .loaded {
+            Banner(systemImage: "wifi.slash", text: L10n.List.offlineBanner, style: .warning)
+                .accessibilityIdentifier(ID.offlineBanner)
+                .transition(.move(edge: .top).combined(with: .opacity))
+        } else if model.refreshError != nil {
+            Banner(systemImage: "exclamationmark.arrow.circlepath", text: L10n.List.refreshFailedBanner, style: .warning)
+                .accessibilityIdentifier(ID.refreshErrorBanner)
+                .transition(.move(edge: .top).combined(with: .opacity))
+        }
     }
 
     private var sortMenu: some View {
@@ -171,7 +205,12 @@ struct ProductListView: View {
                 }
             }
         } label: {
-            Label(L10n.List.category, systemImage: "line.3.horizontal.decrease.circle")
+            Label(
+                L10n.List.category,
+                systemImage: model.query.categorySlug == nil
+                    ? "line.3.horizontal.decrease.circle" : "line.3.horizontal.decrease.circle.fill"
+            )
+            .contentTransition(.symbolEffect(.replace))
         }
         .disabled(model.isSearching)
         .accessibilityHint(model.isSearching ? L10n.List.categoryDisabledWhileSearching : "")
