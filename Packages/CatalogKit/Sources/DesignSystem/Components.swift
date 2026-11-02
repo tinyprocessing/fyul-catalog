@@ -116,22 +116,38 @@ public struct RemoteImage: View {
     }
 
     private func load() async {
-        guard let url else { return }
+        failed = false
+        guard let url else {
+            image = nil
+            backdrop = nil
+            return
+        }
+        let samplesEdge = contentMode == .fit || onBackdrop != nil
         do {
             let (data, _) = try await URLSession.shared.data(from: url)
-            guard let decoded = UIImage(data: data) else { throw URLError(.cannotDecodeContentData) }
-            let prepared = await decoded.byPreparingForDisplay() ?? decoded
-            let edge = decoded.averageEdgeColor.map(Color.init(uiColor:))
+            let (prepared, edge) = try await Self.decode(data, samplingEdge: samplesEdge)
             withAnimation(Motion.gentle) {
-                backdrop = edge
+                backdrop = edge.map(Color.init(uiColor:))
                 image = prepared
             }
-            if let edge { onBackdrop?(edge) }
+            if let backdrop { onBackdrop?(backdrop) }
+        } catch let error as URLError where error.code == .cancelled {
+            return
         } catch is CancellationError {
             return
         } catch {
+            // Never leave the previous product's photo behind a failed load.
+            image = nil
+            backdrop = nil
             failed = true
         }
+    }
+
+    /// Decoding and sampling stay off the main actor so scrolling does not drop frames.
+    private nonisolated static func decode(_ data: Data, samplingEdge: Bool) async throws -> (UIImage, UIColor?) {
+        guard let decoded = UIImage(data: data) else { throw URLError(.cannotDecodeContentData) }
+        let prepared = await decoded.byPreparingForDisplay() ?? decoded
+        return (prepared, samplingEdge ? prepared.averageEdgeColor : nil)
     }
 
 }

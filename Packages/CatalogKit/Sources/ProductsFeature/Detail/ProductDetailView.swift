@@ -148,12 +148,12 @@ struct ProductDetailView: View {
 
     private var sectionSkeleton: some View {
         VStack(alignment: .leading, spacing: Spacing.l) {
-            ForEach(0..<2, id: \.self) { _ in
+            ForEach(0..<Metrics.skeletonSections, id: \.self) { _ in
                 VStack(alignment: .leading, spacing: Spacing.s) {
-                    SkeletonBlock(width: Metrics.thumbnailSize * 1.5, height: Spacing.l)
+                    SkeletonBlock(width: Metrics.skeletonTitleWidth, height: Spacing.l)
                     SkeletonBlock(height: Spacing.m)
                     SkeletonBlock(height: Spacing.m)
-                    SkeletonBlock(width: Metrics.galleryHeight / 2, height: Spacing.m)
+                    SkeletonBlock(width: Metrics.skeletonShortLineWidth, height: Spacing.m)
                 }
                 .card()
             }

@@ -51,7 +51,7 @@ make help                   # everything else
 ## Tests
 
 - **Unit tests** (Swift Testing, 43 tests, no network): the retry policy and client, status mapping, decoding of a real payload, remote config, and list and detail models. The list tests control the order of responses with continuations, so the race conditions above are tested, not just described.
-- **XCUITest** (7 tests in 3 classes, run in parallel on iPhone and iPad with `make ui-test-all`): browsing, error → retry, page failure → retry, empty search, removed product, the remote announcement, and `performAccessibilityAudit()`.
+- **XCUITest** (7 tests in 3 classes, run in parallel on iPhone and iPad with `make ui-test-all`): browsing, error → retry, page failure → retry, empty search, removed product, the remote announcement, and a structural `performAccessibilityAudit` (labels, hit regions, traits).
 - **Maestro** (7 flows): the same scenarios, plus Spanish and one smoke test against the live API.
 - **Shared IDs**: all three use one set of identifiers from `CatalogAccessibility`. The stubbed scenarios are chosen with `-uiTestScenario <name>`; see `StubScenario`.
 

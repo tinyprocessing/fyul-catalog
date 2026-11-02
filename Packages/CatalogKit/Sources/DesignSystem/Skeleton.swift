@@ -7,7 +7,7 @@ struct ShimmerModifier: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     func body(content: Content) -> some View {
-        if active && !reduceMotion {
+        if active && !reduceMotion && Motion.isEnabled {
             content
                 .overlay {
                     GeometryReader { proxy in
@@ -23,6 +23,7 @@ struct ShimmerModifier: ViewModifier {
                     .allowsHitTesting(false)
                 }
                 .onAppear {
+                    phase = -1
                     withAnimation(Motion.shimmer) { phase = 1 }
                 }
         } else {

@@ -23,12 +23,14 @@ public struct LoggingHTTPClient: HTTPClient {
 
     public func data(for request: URLRequest) async throws -> Data {
         let method = request.httpMethod ?? "GET"
-        let path = request.url.map { $0.path() + ($0.query().map { "?\($0)" } ?? "") } ?? "-"
+        let path = request.url?.path() ?? "-"
+        // Queries can carry what the user typed into search: logged, but redacted outside debugging.
+        let query = request.url?.query() ?? ""
         let start = ContinuousClock.now
         do {
             let data = try await base.data(for: request)
             Log.network.debug(
-                "\(method, privacy: .public) \(path, privacy: .public) → 2xx \(data.count) B in \(start.duration(to: .now), privacy: .public)"
+                "\(method, privacy: .public) \(path, privacy: .public)?\(query, privacy: .private) → 2xx \(data.count) B in \(start.duration(to: .now), privacy: .public)"
             )
             return data
         } catch is CancellationError {
@@ -36,7 +38,7 @@ public struct LoggingHTTPClient: HTTPClient {
             throw CancellationError()
         } catch {
             Log.network.error(
-                "\(method, privacy: .public) \(path, privacy: .public) failed: \(String(describing: error), privacy: .public) in \(start.duration(to: .now), privacy: .public)"
+                "\(method, privacy: .public) \(path, privacy: .public)?\(query, privacy: .private) failed: \(String(describing: error), privacy: .public) in \(start.duration(to: .now), privacy: .public)"
             )
             throw error
         }

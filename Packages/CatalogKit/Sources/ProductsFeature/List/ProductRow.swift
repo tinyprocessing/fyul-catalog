@@ -63,7 +63,7 @@ struct ProductCardSkeleton: View {
             SkeletonBlock(width: Metrics.thumbnailSize, height: Metrics.thumbnailSize)
             VStack(alignment: .leading, spacing: Spacing.s) {
                 SkeletonBlock(height: Spacing.l)
-                SkeletonBlock(width: Metrics.thumbnailSize * 1.2, height: Spacing.m)
+                SkeletonBlock(width: Metrics.skeletonTitleWidth, height: Spacing.m)
                 SkeletonBlock(width: Metrics.thumbnailSize, height: Spacing.l)
             }
         }

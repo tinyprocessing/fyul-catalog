@@ -41,30 +41,36 @@ struct ProductListView: View {
         switch model.phase {
         case .loading:
             scrolling {
-                ForEach(0..<Metrics.skeletonRows, id: \.self) { _ in ProductCardSkeleton() }
+                VStack(spacing: Spacing.s) {
+                    ForEach(0..<Metrics.skeletonRows, id: \.self) { _ in ProductCardSkeleton() }
+                }
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(L10n.List.loading)
+                .accessibilityIdentifier(ID.loading)
             }
             .scrollDisabled(true)
-            .accessibilityElement(children: .ignore)
-            .accessibilityLabel(L10n.List.loading)
-            .accessibilityIdentifier(ID.loading)
             .transition(.opacity)
         case .failed(let error):
-            StateView(
-                systemImage: error == .offline ? "wifi.slash" : "exclamationmark.triangle",
-                title: L10n.Error.title(error),
-                message: L10n.Error.message(error),
-                actionTitle: L10n.Error.retry,
-                actionIdentifier: ID.retryButton,
-                action: model.retry
-            )
-            .accessibilityElement(children: .contain)
-            .accessibilityIdentifier(ID.errorState)
+            stateWithBanners {
+                StateView(
+                    systemImage: error == .offline ? "wifi.slash" : "exclamationmark.triangle",
+                    title: L10n.Error.title(error),
+                    message: L10n.Error.message(error),
+                    actionTitle: L10n.Error.retry,
+                    actionIdentifier: ID.retryButton,
+                    action: model.retry
+                )
+                .accessibilityElement(children: .contain)
+                .accessibilityIdentifier(ID.errorState)
+            }
             .transition(.opacity)
         case .empty:
-            emptyState
-                .accessibilityElement(children: .contain)
-                .accessibilityIdentifier(ID.emptyState)
-                .transition(.opacity)
+            stateWithBanners {
+                emptyState
+                    .accessibilityElement(children: .contain)
+                    .accessibilityIdentifier(ID.emptyState)
+            }
+            .transition(.opacity)
         case .loaded:
             productList
                 .transition(.opacity)
@@ -106,6 +112,18 @@ struct ProductListView: View {
         }
         .scrollIndicators(.hidden)
         .scrollDismissesKeyboard(.immediately)
+    }
+
+    /// Full-screen states keep the announcement and status banners above them.
+    private func stateWithBanners(@ViewBuilder _ state: () -> some View) -> some View {
+        VStack(spacing: Spacing.s) {
+            banners
+            Spacer(minLength: 0)
+            state()
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, Spacing.l)
+        .padding(.vertical, Spacing.s)
     }
 
     @ViewBuilder

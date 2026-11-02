@@ -24,6 +24,8 @@ targets:
       - path: App
     dependencies:
       - package: CatalogKit
+        product: DesignSystem
+      - package: CatalogKit
         product: CatalogCore
       - package: CatalogKit
         product: ProductsFeature

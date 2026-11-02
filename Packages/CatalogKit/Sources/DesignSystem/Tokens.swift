@@ -27,6 +27,9 @@ public enum Metrics {
     public static let selectionBorder: CGFloat = 1.5
     public static let skeletonRows = 8
     public static let pressedScale: CGFloat = 0.98
+    public static let skeletonSections = 2
+    public static let skeletonTitleWidth: CGFloat = 96
+    public static let skeletonShortLineWidth: CGFloat = 160
 }
 
 /// Semantic colors: they follow dark mode and increased contrast. Status colors are darkened
@@ -65,6 +68,9 @@ public enum Typography {
 }
 
 public enum Motion {
+    /// Off for UI tests: endless animations keep the app from going idle.
+    @MainActor public static var isEnabled = true
+
     public static let standard = Animation.snappy(duration: 0.3)
     public static let gentle = Animation.smooth(duration: 0.45)
     public static let shimmer = Animation.linear(duration: 1.2).repeatForever(autoreverses: false)

@@ -5,6 +5,8 @@ IPHONE       ?= iPhone 17
 IPAD         ?= iPad Pro 11-inch (M5)
 DERIVED_DATA := build/DerivedData
 XCODEBUILD   := xcodebuild -project $(PROJECT) -scheme $(SCHEME) -derivedDataPath $(DERIVED_DATA)
+# A hung UI test fails after a minute instead of blocking the run.
+TEST_LIMITS  := -test-timeouts-enabled YES -maximum-test-execution-time-allowance 60
 APP          := $(DERIVED_DATA)/Build/Products/Debug-iphonesimulator/Catalog.app
 
 .PHONY: help project build test ui-test ui-test-ipad ui-test-all logs maestro maestro-live format lint run clean
@@ -22,14 +24,14 @@ test: ## Unit tests (Swift Testing), no network
 	$(XCODEBUILD) -destination 'platform=iOS Simulator,name=$(IPHONE)' test -only-testing:CatalogTests
 
 ui-test: ## XCUITest on iPhone against the stubbed backend, includes the accessibility audit
-	$(XCODEBUILD) -destination 'platform=iOS Simulator,name=$(IPHONE)' test -only-testing:CatalogUITests
+	$(XCODEBUILD) -destination 'platform=iOS Simulator,name=$(IPHONE)' $(TEST_LIMITS) test -only-testing:CatalogUITests
 
 ui-test-ipad: ## The same UI tests on iPad (split view)
-	$(XCODEBUILD) -destination 'platform=iOS Simulator,name=$(IPAD)' test -only-testing:CatalogUITests
+	$(XCODEBUILD) -destination 'platform=iOS Simulator,name=$(IPAD)' $(TEST_LIMITS) test -only-testing:CatalogUITests
 
 ui-test-all: ## UI tests on iPhone and iPad at once, test classes spread over simulator clones
 	$(XCODEBUILD) -destination 'platform=iOS Simulator,name=$(IPHONE)' -destination 'platform=iOS Simulator,name=$(IPAD)' \
-		-parallel-testing-enabled YES -parallel-testing-worker-count 3 test -only-testing:CatalogUITests
+		-parallel-testing-enabled YES -parallel-testing-worker-count 3 $(TEST_LIMITS) test -only-testing:CatalogUITests
 
 maestro: build ## Maestro flows against the stubbed backend (needs a booted simulator)
 	xcrun simctl install booted $(APP)

@@ -34,7 +34,6 @@ struct PriceText: View {
     private func current(_ format: Decimal.FormatStyle.Currency) -> some View {
         Text(price, format: format)
             .font(font)
-            .lineLimit(1)
             .contentTransition(.numericText(value: NSDecimalNumber(decimal: price).doubleValue))
     }
 

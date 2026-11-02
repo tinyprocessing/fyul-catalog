@@ -1,4 +1,5 @@
 import CatalogCore
+import DesignSystem
 import Foundation
 import ProductsFeature
 
@@ -37,9 +38,10 @@ struct AppEnvironment {
     }
 
     #if DEBUG
-        /// UI tests and Maestro: no network, flags from launch arguments.
+        /// UI tests and Maestro: no network, no endless animations, flags from launch arguments.
         private static func stubbed(_ scenario: StubScenario, config: AppConfig, arguments: LaunchArguments) -> AppEnvironment {
             Log.app.notice("Stubbed backend: \(scenario.rawValue, privacy: .public)")
+            Motion.isEnabled = false
             var flags = FeatureFlags.defaults
             if let threshold = arguments.lowStockThreshold { flags.lowStockThreshold = threshold }
             if let announcement = arguments.announcement { flags.announcement = announcement }

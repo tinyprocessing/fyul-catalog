@@ -45,6 +45,8 @@ public struct CatalogRootView: View {
                     }
                 }
             }
+            // Balanced keeps the list beside the detail in portrait too, so a tap never hides behind an overlay.
+            .navigationSplitViewStyle(.balanced)
         }
     }
 

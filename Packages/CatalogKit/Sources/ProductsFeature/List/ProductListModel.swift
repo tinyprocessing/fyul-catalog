@@ -108,7 +108,7 @@ public final class ProductListModel {
 
     private func apply(_ newQuery: ProductQuery) {
         guard newQuery != query else { return }
-        Log.products.info("Query changed: \(String(describing: newQuery), privacy: .public)")
+        Log.products.info("Query changed: \(String(describing: newQuery), privacy: .private)")
         query = newQuery
         // Results of the previous query must not stay visible under the new one.
         products = []

@@ -13,8 +13,8 @@
 		49386B01F7D503EDA6AD0618 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 8C2CD89CD7E06256F35E71E7 /* InfoPlist.xcstrings */; };
 		4C5DE8A506E134BB9F8B78CF /* CatalogAccessibility in Frameworks */ = {isa = PBXBuildFile; productRef = 30002BB191080136AA68F9BC /* CatalogAccessibility */; };
 		522EB73E4C50D895BD3D5D32 /* ProductListModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1176321B50DA79CBDCB31F5F /* ProductListModelTests.swift */; };
-		5CDD3D884233DD82F7451E80 /* CatalogCore in Frameworks */ = {isa = PBXBuildFile; productRef = 9AB064986776E4A9610504B8 /* CatalogCore */; };
-		6616847473ADA6F1E06C4302 /* ProductsFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 3980D1095FA456EE893DCDBB /* ProductsFeature */; };
+		5CDD3D884233DD82F7451E80 /* DesignSystem in Frameworks */ = {isa = PBXBuildFile; productRef = 994F92D3C89C684D55D234B1 /* DesignSystem */; };
+		6616847473ADA6F1E06C4302 /* CatalogCore in Frameworks */ = {isa = PBXBuildFile; productRef = 9AB064986776E4A9610504B8 /* CatalogCore */; };
 		75B17BCAF8879B347AF6BE7A /* UITestCase.swift in Sources */ = {isa = PBXBuildFile; fileRef = AEE60F35DF479AAB8A1A7D97 /* UITestCase.swift */; };
 		82AE088D7A87997C36376AF2 /* CatalogApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DBF7751B77E6F6980648358 /* CatalogApp.swift */; };
 		86734281DB8DCC3393D504CB /* ProductsFeature in Frameworks */ = {isa = PBXBuildFile; productRef = CAE3875B19AC7456378F2399 /* ProductsFeature */; };
@@ -26,6 +26,7 @@
 		CF148DA3339AF09CC9249C96 /* ProductDetailModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = E21CBD62A71B355232656FCF /* ProductDetailModelTests.swift */; };
 		D9039D4211ED69DC991B0B98 /* RemoteConfigTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC55B8CC5F91604F2083DF80 /* RemoteConfigTests.swift */; };
 		F2CB745064B8B90B971C26A5 /* CatalogCore in Frameworks */ = {isa = PBXBuildFile; productRef = DFA2E0AB346621C9C38BF5A3 /* CatalogCore */; };
+		F8D3BC682AA1D4F246470C8E /* ProductsFeature in Frameworks */ = {isa = PBXBuildFile; productRef = 3980D1095FA456EE893DCDBB /* ProductsFeature */; };
 		FA40B0C629EA673B6F1DABBC /* TestDoubles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3EF8A19EB11E6F72E9F783C2 /* TestDoubles.swift */; };
 /* End PBXBuildFile section */
 
@@ -78,8 +79,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				5CDD3D884233DD82F7451E80 /* CatalogCore in Frameworks */,
-				6616847473ADA6F1E06C4302 /* ProductsFeature in Frameworks */,
+				5CDD3D884233DD82F7451E80 /* DesignSystem in Frameworks */,
+				6616847473ADA6F1E06C4302 /* CatalogCore in Frameworks */,
+				F8D3BC682AA1D4F246470C8E /* ProductsFeature in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -251,6 +253,7 @@
 			);
 			name = Catalog;
 			packageProductDependencies = (
+				994F92D3C89C684D55D234B1 /* DesignSystem */,
 				9AB064986776E4A9610504B8 /* CatalogCore */,
 				3980D1095FA456EE893DCDBB /* ProductsFeature */,
 			);
@@ -683,6 +686,10 @@
 		3980D1095FA456EE893DCDBB /* ProductsFeature */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = ProductsFeature;
+		};
+		994F92D3C89C684D55D234B1 /* DesignSystem */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = DesignSystem;
 		};
 		9AB064986776E4A9610504B8 /* CatalogCore */ = {
 			isa = XCSwiftPackageProductDependency;
