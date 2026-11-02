@@ -9,7 +9,7 @@ XCODEBUILD   := xcodebuild -project $(PROJECT) -scheme $(SCHEME) -derivedDataPat
 TEST_LIMITS  := -test-timeouts-enabled YES -maximum-test-execution-time-allowance 60
 APP          := $(DERIVED_DATA)/Build/Products/Debug-iphonesimulator/Catalog.app
 
-.PHONY: help project build test ui-test ui-test-ipad ui-test-all logs maestro maestro-live format lint run clean
+.PHONY: help project build test ui-test ui-test-ipad logs maestro maestro-live format lint run clean
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -28,10 +28,6 @@ ui-test: ## XCUITest on iPhone against the stubbed backend, includes the accessi
 
 ui-test-ipad: ## The same UI tests on iPad (split view)
 	$(XCODEBUILD) -destination 'platform=iOS Simulator,name=$(IPAD)' $(TEST_LIMITS) test -only-testing:CatalogUITests
-
-ui-test-all: ## UI tests on iPhone and iPad at once, test classes spread over simulator clones
-	$(XCODEBUILD) -destination 'platform=iOS Simulator,name=$(IPHONE)' -destination 'platform=iOS Simulator,name=$(IPAD)' \
-		-parallel-testing-enabled YES -parallel-testing-worker-count 3 $(TEST_LIMITS) test -only-testing:CatalogUITests
 
 maestro: build ## Maestro flows against the stubbed backend (needs a booted simulator)
 	xcrun simctl install booted $(APP)

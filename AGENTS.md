@@ -8,7 +8,7 @@
 - Changing `project.yml` → run `make project` and commit the regenerated `Catalog.xcodeproj`.
 - New screen or area → `scripts/new-feature.sh <Name>` (creates `<Name>Feature`, registers it in Package.swift and project.yml).
 - Debugging → `make logs` (os.Logger, subsystem `com.tinyprocessing.catalog`); add a `Log.<category>` line where behaviour branches.
-- `make ui-test-all` runs UI tests on iPhone and iPad in parallel.
+- UI tests have a 60 s per-test limit. A test that hangs or flakes gets deleted, not retried.
 
 ## Layout
 - `App/`: composition root only. `AppEnvironment` picks live or stubbed implementations.

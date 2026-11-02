@@ -2,7 +2,7 @@ import CatalogAccessibility
 import XCTest
 
 /// Base for UI tests. Runs against `StubProductService`: no network, deterministic data.
-/// One class per area so `-parallel-testing-enabled` can spread them over simulator clones.
+/// One class per area.
 @MainActor
 class UITestCase: XCTestCase {
     typealias List = AccessibilityID.ProductList

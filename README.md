@@ -6,7 +6,7 @@ It is built on the [DummyJSON Products API](https://dummyjson.com/docs/products)
 ```sh
 open Catalog.xcodeproj      # Run the "Catalog" scheme on any iPhone or iPad simulator
 make test                   # unit tests
-make ui-test-all            # XCUITest on iPhone + iPad in parallel, stubbed backend + accessibility audit
+make ui-test                # XCUITest with stubbed backend + accessibility audit (make ui-test-ipad for iPad)
 make maestro                # Maestro flows (stubbed); `make maestro-live` hits the real API
 make help                   # everything else
 ```
@@ -51,7 +51,7 @@ make help                   # everything else
 ## Tests
 
 - **Unit tests** (Swift Testing, 43 tests, no network): the retry policy and client, status mapping, decoding of a real payload, remote config, and list and detail models. The list tests control the order of responses with continuations, so the race conditions above are tested, not just described.
-- **XCUITest** (7 tests in 3 classes, run in parallel on iPhone and iPad with `make ui-test-all`): browsing, error → retry, page failure → retry, empty search, removed product, the remote announcement, and a structural `performAccessibilityAudit` (labels, hit regions, traits).
+- **XCUITest** (7 tests in 3 classes, one minute timeout per test): browsing, error → retry, page failure → retry, empty search, removed product, the remote announcement, and a structural `performAccessibilityAudit` (labels, hit regions, traits).
 - **Maestro** (7 flows): the same scenarios, plus Spanish and one smoke test against the live API.
 - **Shared IDs**: all three use one set of identifiers from `CatalogAccessibility`. The stubbed scenarios are chosen with `-uiTestScenario <name>`; see `StubScenario`.
 
