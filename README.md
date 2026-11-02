@@ -3,6 +3,15 @@
 A first version of a product catalog for merchants who run their business from their phone.
 It is built on the [DummyJSON Products API](https://dummyjson.com/docs/products) with SwiftUI and has no third-party dependencies.
 
+<p>
+  <img src="docs/screenshots/iphone-list.png" width="23%" alt="Product list on iPhone">
+  <img src="docs/screenshots/iphone-detail.png" width="23%" alt="Product detail on iPhone">
+  <img src="docs/screenshots/iphone-dark.png" width="23%" alt="Product list in dark mode">
+</p>
+<p>
+  <img src="docs/screenshots/ipad-split.png" width="70%" alt="Split view on iPad">
+</p>
+
 ```sh
 open Catalog.xcodeproj      # Run the "Catalog" scheme on any iPhone or iPad simulator
 make test                   # unit tests
