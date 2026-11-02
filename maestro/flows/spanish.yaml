@@ -1,0 +1,11 @@
+appId: com.tinyprocessing.catalog
+name: Spanish localization
+tags: [stubbed, l10n]
+---
+- launchApp:
+    clearState: true
+    arguments:
+      uiTestScenario: catalog
+      AppleLanguages: (es)
+- assertVisible: Productos
+- assertVisible: Buscar

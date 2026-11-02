@@ -1,0 +1,14 @@
+appId: com.tinyprocessing.catalog
+name: Server error, then retry recovers
+tags: [stubbed, edge-case]
+---
+- launchApp:
+    clearState: true
+    arguments:
+      uiTestScenario: recoversAfterRetry
+- assertVisible:
+    id: productList.retry
+- tapOn:
+    id: productList.retry
+- assertVisible:
+    id: productList.row.1

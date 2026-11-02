@@ -1,0 +1,16 @@
+appId: com.tinyprocessing.catalog
+name: Browse and open a product (stubbed backend)
+tags: [stubbed, smoke]
+---
+- launchApp:
+    clearState: true
+    arguments:
+      uiTestScenario: catalog
+- assertVisible:
+    id: productList.row.1
+- tapOn:
+    id: productList.row.1
+- assertVisible:
+    id: productDetail.title
+- assertVisible:
+    id: productDetail.stock

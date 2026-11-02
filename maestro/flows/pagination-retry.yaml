@@ -1,0 +1,21 @@
+appId: com.tinyprocessing.catalog
+name: Next page fails, loaded products stay, retry continues
+tags: [stubbed, edge-case]
+---
+- launchApp:
+    clearState: true
+    arguments:
+      uiTestScenario: pageFails
+- assertVisible:
+    id: productList.row.1
+- scrollUntilVisible:
+    element:
+      id: productList.pageRetry
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    id: productList.pageRetry
+- scrollUntilVisible:
+    element:
+      id: productList.row.25
+    direction: DOWN

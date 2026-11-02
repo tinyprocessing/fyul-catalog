@@ -1,0 +1,14 @@
+appId: com.tinyprocessing.catalog
+name: Search without results shows an empty state
+tags: [stubbed, edge-case]
+---
+- launchApp:
+    clearState: true
+    arguments:
+      uiTestScenario: catalog
+- assertVisible:
+    id: productList.row.1
+- tapOn: Search
+- inputText: zzzz
+- assertVisible:
+    id: productList.empty

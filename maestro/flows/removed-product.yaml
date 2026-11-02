@@ -1,0 +1,12 @@
+appId: com.tinyprocessing.catalog
+name: Product removed after the list loaded
+tags: [stubbed, edge-case]
+---
+- launchApp:
+    clearState: true
+    arguments:
+      uiTestScenario: productRemoved
+- tapOn:
+    id: productList.row.2
+- assertVisible:
+    id: productDetail.unavailable

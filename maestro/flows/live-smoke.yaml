@@ -1,0 +1,16 @@
+appId: com.tinyprocessing.catalog
+name: Live API smoke test (needs network)
+tags: [live]
+---
+- launchApp:
+    clearState: true
+- assertVisible:
+    id: productList.row.1
+- tapOn:
+    id: productList.row.1
+- assertVisible:
+    id: productDetail.title
+- scrollUntilVisible:
+    element:
+      id: productDetail.reviews
+    direction: DOWN

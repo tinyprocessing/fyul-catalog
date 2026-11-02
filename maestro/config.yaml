@@ -1,0 +1,3 @@
+# Run all flows: maestro test maestro/
+flows:
+  - "flows/*"
