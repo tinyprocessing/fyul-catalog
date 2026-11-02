@@ -59,6 +59,9 @@ public struct RetryingHTTPClient: HTTPClient {
                 guard let delay = policy.delay(afterAttempt: attempt, retryAfter: error.retryAfter, unitRandom: random()) else {
                     throw error
                 }
+                Log.network.notice(
+                    "Retry \(attempt + 1, privacy: .public)/\(policy.maxAttempts, privacy: .public) in \(delay, privacy: .public) after \(String(describing: error), privacy: .public)"
+                )
                 try await sleep(delay)
                 attempt += 1
             }

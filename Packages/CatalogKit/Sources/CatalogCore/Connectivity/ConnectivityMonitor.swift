@@ -13,6 +13,7 @@ public struct PathConnectivityMonitor: ConnectivityMonitor {
         AsyncStream { continuation in
             let monitor = NWPathMonitor()
             monitor.pathUpdateHandler = { path in
+                Log.connectivity.info("Path \(path.status == .satisfied ? "online" : "offline", privacy: .public)")
                 continuation.yield(path.status == .satisfied)
             }
             continuation.onTermination = { _ in monitor.cancel() }

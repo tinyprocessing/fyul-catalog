@@ -1,7 +1,6 @@
 import CatalogCore
 import Foundation
 import ProductsFeature
-import UIKit
 
 /// Composition root: the only place that decides which implementations the app runs with.
 @MainActor
@@ -21,7 +20,7 @@ struct AppEnvironment {
     private static func live(config: AppConfig) -> AppEnvironment {
         URLCache.shared = URLCache(memoryCapacity: config.imageCache.memoryBytes, diskCapacity: config.imageCache.diskBytes)
         let transport = URLSessionHTTPClient()
-        let client = RetryingHTTPClient(base: transport, policy: config.retry)
+        let client = RetryingHTTPClient(base: LoggingHTTPClient(base: transport), policy: config.retry)
         let remoteSource = config.remoteConfig.url.map {
             URLRemoteConfigSource(url: $0, timeout: config.remoteConfig.timeout, client: transport)
         }
@@ -38,9 +37,9 @@ struct AppEnvironment {
     }
 
     #if DEBUG
-        /// UI tests and Maestro: no network, no animations, flags from launch arguments.
+        /// UI tests and Maestro: no network, flags from launch arguments.
         private static func stubbed(_ scenario: StubScenario, config: AppConfig, arguments: LaunchArguments) -> AppEnvironment {
-            UIView.setAnimationsEnabled(false)
+            Log.app.notice("Stubbed backend: \(scenario.rawValue, privacy: .public)")
             var flags = FeatureFlags.defaults
             if let threshold = arguments.lowStockThreshold { flags.lowStockThreshold = threshold }
             if let announcement = arguments.announcement { flags.announcement = announcement }

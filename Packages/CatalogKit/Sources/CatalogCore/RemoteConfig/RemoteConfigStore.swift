@@ -69,9 +69,15 @@ public final class RemoteConfigStore {
         if let refreshTask { return await refreshTask.value }
         guard let source else { return }
         let task = Task { [cache] in
-            guard let fetched = try? await source.fetch() else { return }
-            cache.save(fetched)
-            if fetched != flags { flags = fetched }
+            do {
+                let fetched = try await source.fetch()
+                cache.save(fetched)
+                guard fetched != flags else { return }
+                Log.remoteConfig.info("Applied new flags: \(String(describing: fetched), privacy: .public)")
+                flags = fetched
+            } catch {
+                Log.remoteConfig.error("Fetch failed, keeping current flags: \(String(describing: error), privacy: .public)")
+            }
         }
         refreshTask = task
         await task.value

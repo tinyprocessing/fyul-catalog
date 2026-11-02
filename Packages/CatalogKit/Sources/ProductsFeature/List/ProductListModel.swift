@@ -1,6 +1,7 @@
 import CatalogCore
 import Foundation
 import Observation
+import os
 
 /// Owns the list: query, pagination, refresh and connectivity.
 ///
@@ -107,6 +108,7 @@ public final class ProductListModel {
 
     private func apply(_ newQuery: ProductQuery) {
         guard newQuery != query else { return }
+        Log.products.info("Query changed: \(String(describing: newQuery), privacy: .public)")
         query = newQuery
         // Results of the previous query must not stay visible under the new one.
         products = []
@@ -162,7 +164,11 @@ public final class ProductListModel {
     }
 
     private func finishFirstPage(_ page: Page<ProductSummary>, generation: Int) {
-        guard generation == self.generation else { return }
+        guard generation == self.generation else {
+            Log.products.debug("Dropped stale first page from generation \(generation, privacy: .public)")
+            return
+        }
+        Log.products.info("First page: \(page.items.count, privacy: .public) of \(page.total, privacy: .public)")
         products = page.items.uniquedByID()
         nextSkip = page.skip + page.items.count
         refreshError = nil
@@ -172,6 +178,7 @@ public final class ProductListModel {
 
     private func failFirstPage(_ error: APIError, generation: Int) {
         guard generation == self.generation else { return }
+        Log.products.error("First page failed: \(String(describing: error), privacy: .public)")
         if products.isEmpty {
             phase = .failed(error)
         } else {
@@ -198,7 +205,11 @@ public final class ProductListModel {
     }
 
     private func finishNextPage(_ page: Page<ProductSummary>, generation: Int) {
-        guard generation == self.generation else { return }
+        guard generation == self.generation else {
+            Log.products.debug("Dropped stale page from generation \(generation, privacy: .public)")
+            return
+        }
+        Log.products.info("Page at \(page.skip, privacy: .public): \(page.items.count, privacy: .public) items")
         // Offset paging over a changing catalog can repeat items between pages.
         let known = Set(products.map(\.id))
         products += page.items.uniquedByID().filter { !known.contains($0.id) }
@@ -208,6 +219,7 @@ public final class ProductListModel {
 
     private func failNextPage(_ error: APIError, generation: Int) {
         guard generation == self.generation else { return }
+        Log.products.error("Page failed: \(String(describing: error), privacy: .public)")
         pageState = .failed(error)
     }
 
@@ -217,6 +229,7 @@ public final class ProductListModel {
     }
 
     private func recoverAfterReconnect() {
+        Log.products.info("Back online, recovering failed loads")
         if case .failed = phase {
             retry()
         } else if refreshError != nil {

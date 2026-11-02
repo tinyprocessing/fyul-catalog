@@ -1,6 +1,7 @@
 import CatalogCore
 import Foundation
 import Observation
+import os
 
 /// Shows the list summary at once, then replaces it with the full, fresher product.
 @MainActor
@@ -39,8 +40,10 @@ public final class ProductDetailModel {
         } catch is CancellationError {
             return
         } catch APIError.notFound {
+            Log.products.notice("Product \(self.summary.id, privacy: .public) no longer exists")
             phase = .unavailable
         } catch {
+            Log.products.error("Detail \(self.summary.id, privacy: .public) failed: \(String(describing: error), privacy: .public)")
             phase = .failed(error.asAPIError)
         }
     }
