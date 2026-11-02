@@ -1,0 +1,17 @@
+// Shared build settings. Environment values reach the app through Info.plist.
+MARKETING_VERSION = 1.0.0
+CURRENT_PROJECT_VERSION = 1
+PRODUCT_BUNDLE_IDENTIFIER = com.tinyprocessing.catalog
+IPHONEOS_DEPLOYMENT_TARGET = 17.0
+TARGETED_DEVICE_FAMILY = 1,2
+SWIFT_VERSION = 6.0
+SWIFT_STRICT_CONCURRENCY = complete
+SWIFT_TREAT_WARNINGS_AS_ERRORS = YES
+GCC_TREAT_WARNINGS_AS_ERRORS = YES
+ENABLE_USER_SCRIPT_SANDBOXING = YES
+LOCALIZATION_PREFERS_STRING_CATALOGS = YES
+SWIFT_EMIT_LOC_STRINGS = YES
+
+// `$()` keeps `//` from starting a comment.
+API_BASE_URL = https:/$()/dummyjson.com
+REMOTE_CONFIG_URL = https:/$()/raw.githubusercontent.com/tinyprocessing/fyul-catalog/main/remote-config/flags.json
