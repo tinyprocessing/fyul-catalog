@@ -1,0 +1,7 @@
+{
+  "lowStockThreshold": 10,
+  "showsDiscounts": true,
+  "showsReviews": true,
+  "sortOptions": ["featured", "priceLowToHigh", "priceHighToLow", "lowStockFirst", "topRated"],
+  "announcement": null
+}
