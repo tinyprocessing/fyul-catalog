@@ -6,6 +6,9 @@
 - `make run SCENARIO=pageFails` launches the app with a stubbed backend. Scenarios: `StubScenario` in `CatalogCore/Stubs`.
 - `.mcp.json` registers Xcode's MCP server (`xcrun mcpbridge`) for builds, previews and diagnostics while Xcode is open.
 - Changing `project.yml` → run `make project` and commit the regenerated `Catalog.xcodeproj`.
+- New screen or area → `scripts/new-feature.sh <Name>` (creates `<Name>Feature`, registers it in Package.swift and project.yml).
+- Debugging → `make logs` (os.Logger, subsystem `com.tinyprocessing.catalog`); add a `Log.<category>` line where behaviour branches.
+- `make ui-test-all` runs UI tests on iPhone and iPad in parallel.
 
 ## Layout
 - `App/`: composition root only. `AppEnvironment` picks live or stubbed implementations.

@@ -6,7 +6,7 @@ It is built on the [DummyJSON Products API](https://dummyjson.com/docs/products)
 ```sh
 open Catalog.xcodeproj      # Run the "Catalog" scheme on any iPhone or iPad simulator
 make test                   # unit tests
-make ui-test                # XCUITest with stubbed backend + accessibility audit
+make ui-test-all            # XCUITest on iPhone + iPad in parallel, stubbed backend + accessibility audit
 make maestro                # Maestro flows (stubbed); `make maestro-live` hits the real API
 make help                   # everything else
 ```
@@ -17,6 +17,8 @@ make help                   # everything else
 - **Detail**: the list summary appears at once, then the full product loads (gallery, SKU, stock, minimum order, shipping, warranty, returns, reviews).
 - **iPhone and iPad**: `NavigationSplitView`. It is a sidebar with detail on iPad and a stack on iPhone. Rows switch to a vertical layout at accessibility text sizes.
 - **English and Spanish**, with plurals, from String Catalogs.
+- **Design system**: one 4-pt spacing scale, card surface, type and motion tokens; skeleton loading; image backdrops sampled from the photo's own edge color.
+- **Logs**: `os.Logger` per area (network, products, remote-config, connectivity). Network logging is a decorator, so every retry attempt is its own line. `make logs` streams them.
 
 ## Main decisions
 
@@ -29,6 +31,7 @@ make help                   # everything else
 | Remote config as a static JSON file (`remote-config/flags.json`) | Firebase | It needs no SDK. The app uses the last good config, then bundled defaults. Every key falls back on its own, and a failed fetch never downgrades flags. |
 | Stock thresholds from remote config | The API's `availabilityStatus` text | What counts as *low* is a business decision, not a backend label. |
 | XcodeGen `project.yml`, with the generated project committed | Hand-edited project | Clean diffs. Opening the project needs no extra tools. |
+| Feature modules listed in one array in `Package.swift` | A target block per feature | `scripts/new-feature.sh Favorites` scaffolds model, view, strings and a test, and wires the module into the app. |
 
 ## Edge cases handled
 
@@ -48,7 +51,7 @@ make help                   # everything else
 ## Tests
 
 - **Unit tests** (Swift Testing, 43 tests, no network): the retry policy and client, status mapping, decoding of a real payload, remote config, and list and detail models. The list tests control the order of responses with continuations, so the race conditions above are tested, not just described.
-- **XCUITest** (7 tests): browsing, error → retry, page failure → retry, empty search, removed product, the remote announcement, and `performAccessibilityAudit()`.
+- **XCUITest** (7 tests in 3 classes, run in parallel on iPhone and iPad with `make ui-test-all`): browsing, error → retry, page failure → retry, empty search, removed product, the remote announcement, and `performAccessibilityAudit()`.
 - **Maestro** (7 flows): the same scenarios, plus Spanish and one smoke test against the live API.
 - **Shared IDs**: all three use one set of identifiers from `CatalogAccessibility`. The stubbed scenarios are chosen with `-uiTestScenario <name>`; see `StubScenario`.
 
