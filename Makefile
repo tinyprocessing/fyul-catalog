@@ -8,8 +8,11 @@ XCODEBUILD   := xcodebuild -project $(PROJECT) -scheme $(SCHEME) -derivedDataPat
 # A hung UI test fails after a minute instead of blocking the run.
 TEST_LIMITS  := -test-timeouts-enabled YES -maximum-test-execution-time-allowance 60
 APP          := $(DERIVED_DATA)/Build/Products/Debug-iphonesimulator/Catalog.app
+# UDID of $(IPHONE) on the newest installed iOS. Commands target it explicitly, so a connected
+# Android phone or a second booted simulator can't be picked by mistake.
+SIM_UDID      = $(shell xcrun simctl list devices available -j | /usr/bin/python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; m=sorted((r,x["udid"]) for r,l in d.items() for x in l if x["name"]=="$(IPHONE)"); print(m[-1][1] if m else "")')
 
-.PHONY: help project build test ui-test ui-test-ipad logs maestro maestro-live format lint run clean
+.PHONY: help project build boot test ui-test ui-test-ipad logs maestro maestro-live format lint run clean
 
 help: ## List targets
 	@grep -E '^[a-z-]+:.*##' $(MAKEFILE_LIST) | awk -F':.*## ' '{printf "  %-14s %s\n", $$1, $$2}'
@@ -29,17 +32,23 @@ ui-test: ## XCUITest on iPhone against the stubbed backend, includes the accessi
 ui-test-ipad: ## The same UI tests on iPad (split view)
 	$(XCODEBUILD) -destination 'platform=iOS Simulator,name=$(IPAD)' $(TEST_LIMITS) test -only-testing:CatalogUITests
 
-maestro: build ## Maestro flows against the stubbed backend (needs a booted simulator)
-	xcrun simctl install booted $(APP)
-	maestro test --exclude-tags live maestro/flows
+boot: ## Boot the $(IPHONE) simulator (newest iOS) if it isn't running, and wait until it is ready
+	@if [ -z "$(SIM_UDID)" ]; then echo "No simulator named '$(IPHONE)'. Pass IPHONE=\"<name>\"."; exit 1; fi
+	@xcrun simctl boot $(SIM_UDID) 2>/dev/null || true
+	@open -a Simulator 2>/dev/null || true
+	@xcrun simctl bootstatus $(SIM_UDID) -b >/dev/null && echo "Simulator ready: $(IPHONE) ($(SIM_UDID))"
 
-maestro-live: build ## Maestro smoke test against the real DummyJSON API
-	xcrun simctl install booted $(APP)
-	maestro test --include-tags live maestro/flows
+maestro: build boot ## Maestro flows against the stubbed backend (boots the simulator if needed)
+	xcrun simctl install $(SIM_UDID) $(APP)
+	maestro --device $(SIM_UDID) test --exclude-tags live maestro/flows
 
-run: build ## Build, install and launch on the booted simulator (SCENARIO=catalog for stubs)
-	xcrun simctl install booted $(APP)
-	xcrun simctl launch --terminate-running-process booted com.tinyprocessing.catalog $(if $(SCENARIO),-uiTestScenario $(SCENARIO))
+maestro-live: build boot ## Maestro smoke test against the real DummyJSON API
+	xcrun simctl install $(SIM_UDID) $(APP)
+	maestro --device $(SIM_UDID) test --include-tags live maestro/flows
+
+run: build boot ## Build, install and launch on the simulator (SCENARIO=catalog for stubs)
+	xcrun simctl install $(SIM_UDID) $(APP)
+	xcrun simctl launch --terminate-running-process $(SIM_UDID) com.tinyprocessing.catalog $(if $(SCENARIO),-uiTestScenario $(SCENARIO))
 
 logs: ## Stream the app's logs from the booted simulator
 	xcrun simctl spawn booted log stream --level debug --predicate 'subsystem == "com.tinyprocessing.catalog"'
